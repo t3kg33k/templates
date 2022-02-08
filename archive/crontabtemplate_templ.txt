@@ -1,0 +1,4 @@
+# Yum update then reboot on Sunday night at 11:59pm
+59 23 * * 0     /root/scripts/yumupdate.sh
+# yum update with log at 1am on Monday and Wednesday
+0 1 * * 1,3 /root/scripts/updates.sh > /root/update.log 2>&1

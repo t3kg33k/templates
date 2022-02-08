@@ -1,0 +1,227 @@
+---
+ - hosts: localhost
+   tasks:
+###### The following imports repo keys for RPM Fusion
+    - name: Importing RPM Fusion (free) key
+      become: yes
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-2020
+
+    - name: Importing RPM (non-free) key
+      become: yes
+      ansible.builtin.rpm_key:
+        state: present
+        key: https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-2020
+
+###### The following installs the RPM Fusion repos
+    - name: Remote RPM install for RPM Fusion nonfree repo
+      become: yes
+      dnf: 
+        name: https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ansible_distribution_major_version}}.noarch.rpm
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+    - name: Remote RPM install for RPM Fusion free repo
+      become: yes
+      dnf: 
+        name: https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ansible_distribution_major_version}}.noarch.rpm
+        state: present
+      when: ansible_distribution == 'Fedora'
+
+###### The following adds the Brave Browser repo
+    - name: Adding Brave browser repo
+      become: yes
+      ansible.builtin.shell:
+        cmd: dnf config-manager --add-repo https://brave-browser-rpm-release.s3.brave.com/x86_64/
+        warn: false
+
+    - name: Importing Brave browser key
+      become: yes
+      ansible.builtin.shell:
+        cmd: rpm --import https://brave-browser-rpm-release.s3.brave.com/brave-core.asc 
+        warn: false
+
+##### Install OS updates
+    - name: update OS
+      become: yes
+      dnf:
+        name: '*'
+        state: latest
+        update_cache: yes
+      when:
+        - ansible_os_family == "RedHat"
+
+##### Begin installing applications
+
+    - name: Install Applications
+      become: yes
+      package:
+        state: present
+        name:
+          - mlocate
+          - smplayer
+          - avidemux
+          - brave-browser
+          - vim
+          - rclone
+          - nextcloud-client
+          - git
+          - ncdu
+          - remmina
+          - variety
+          - rapid-photo-downloader
+          - htop
+          - nmap
+          - virt-manager
+          - lshw
+          - kdenlive
+          - thunderbird
+
+##### Set VIM as the default editor
+    - name: Configure vim as default
+      become: yes
+      dnf:
+        name: vim-default-editor
+        state: present
+        allowerasing: yes
+
+##### Stop and disabled the firewall
+    - name: Stop and disable firewalld
+      become: yes
+      service:
+        name: firewalld
+        state: stopped
+        enabled: no
+
+##### Add flathub repo
+    - name: Add flathub repo
+      become: no
+      community.general.flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://dl.flathub.org/repo/flathub.flatpakrepo
+        method: user
+
+##### Continue installing applications from flathub
+    - name: Install MakeMKV
+      become: no
+      flatpak:
+        name: com.makemkv.MakeMKV
+        state: present 
+        method: user
+
+    - name: Install Handbrake
+      become: no
+      flatpak:
+        name: fr.handbrake.ghb
+        state: present
+        method: user
+
+    - name: Install Signal
+      become: no
+      flatpak:
+        name: org.signal.Signal
+        state: present
+        method: user
+
+    - name: Install Telegram
+      become: no
+      flatpak:
+        name: org.telegram.desktop
+        state: present
+        method: user
+
+    - name: Install Discord
+      become: no
+      flatpak: 
+        name: com.discordapp.Discord
+        state: present
+        method: user
+
+    - name: Install OnlyOffice 
+      become: no
+      flatpak:
+        name: org.onlyoffice
+        state: present
+        method: user
+
+    - name: Install VSCode 
+      become: no
+      flatpak:
+        name: com.visualstudio.code
+        state: present
+        method: user
+
+##### Replace .bashrc with custom .bashrc
+    - name: Copy bashrc template
+      ansible.builtin.copy:
+         src: /directory/to/configs/Fed/bashrc_Fed
+         dest: /home/user/.bashrc
+         owner: ed
+         group: ed
+         mode: '0644'
+         backup: yes
+
+##### Create a bin directory for launching scripts
+    - name: Create home bin directory if it does not exist
+      ansible.builtin.file:
+         path: /home/user/bin
+         state: directory
+         mode: '0755'
+    
+##### Set selinux to disabled
+    - name: disable selinux
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: SELINUX=disabled
+
+##### Create directories for NFS NAS shares
+    - name: Create /mnt/nas_backup directory if it does not exist
+      become: yes
+      ansible.builtin.file:
+        path: /mnt/nas_backup
+        state: directory
+        mode: '0777'
+
+##### Add the NFS share mounts to fstab
+    - name: Add to fstab nas_backup
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: ipaddress:/volume1/backups /mnt/nas_backup nfs rsize=8192,wsize=8192,timeo=14,intr
+
+#### The following sets up systemd-resolved using PiHole IP address
+    - name: Create resolved.conf.d directory if it does not exist
+      become: yes
+      ansible.builtin.file:
+        path: /etc/systemd/resolved.conf.d
+        state: directory
+        mode: '0755'
+
+    - name: Copy resolved template
+      become: yes
+      ansible.builtin.copy:
+         src: /directory/to/configs/Fed/resolved.conf
+         dest: /etc/systemd/resolved.conf.d/
+         owner: root
+         group: root
+         mode: '0644'
+         backup: yes
+
+    - name: Restart systemd-resolved
+      become: yes
+      service:
+        name: systemd-resolved
+        state: restarted
+        enabled: yes
+
+#### Add line to sudoers
+    - name: Add last line to sudoers
+      become: yes
+      ansible.builtin.lineinfile:
+        path: /etc/sudoers
+        line: "user  ALL=(ALL) NOPASSWD: /usr/bin/dnf, /usr/bin/flatpak" 
+

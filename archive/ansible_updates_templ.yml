@@ -1,0 +1,24 @@
+--- # Complete system updates on Red Hat and Debian based systems
+- hosts: testvms
+  become: yes
+  tasks:
+
+  - name: update yum packages
+    yum: 
+      name: '*'
+      state: latest
+      update_cache: yes
+    when:
+      - ansible_os_family == "RedHat"
+      - ansible_distribution == "CentOS"
+
+
+  - name: update apt packages
+    apt: 
+      name: '*'
+      state: latest
+      update_cache: yes
+    when:
+      - ansible_os_family == "Debian"
+      - ansible_distribution == "Ubuntu"
+#
