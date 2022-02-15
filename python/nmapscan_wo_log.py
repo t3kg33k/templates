@@ -5,7 +5,7 @@
 # Notes:
 # 1. Required Python packages: python-nmap
 #       To install run: python3 -m pip install python-nmap
-# 2. the $PYTHONPATH environment variable must be set: 
+# 2. the $PYTHONPATH environment variable must be set:
 #       example: export PYTHONPATH=/usr/lib/python3/dist-packages/
 #       For CentOS: export PYTHONPATH=/usr/local/lib/python3.6/site-packages/
 # 3. This script also uses the mail utility for sending email alerts
@@ -17,12 +17,19 @@
 # *** NOTE: THIS SCRIPT MUST BE RUN AS ROOT ***
 
 # python module imports
+import re
 import os
 import shutil
 import nmap
 import sys
 import subprocess
 from datetime import datetime
+
+# === 2/15/2022, simbleau ===
+regex_mac_exclusions = []
+# regex_mac_exclusions.append("00:00:5e:00:53:af")  -- A single MAC address
+# regex_mac_exclusions.append("^00:.*")             -- All MACs starting with '00:'
+# ===========================
 
 # variable containing the filepath of the nmap scan results file
 mac_list = os.environ['HOME'] + "/maclist.txt"
@@ -32,7 +39,8 @@ masterfile = os.environ['HOME'] + "/master_mac.txt"
 
 # If a file from previous nmap scans exists, create a backup of the file
 if os.path.exists(mac_list):
-    shutil.copyfile(mac_list, os.environ['HOME'] + '/maclist_' + datetime.now().strftime("%Y_%m_%H:%M") + '.log.bk')
+    shutil.copyfile(mac_list, os.environ['HOME'] + '/maclist_' +
+                    datetime.now().strftime("%Y_%m_%H:%M") + '.log.bk')
 
 # Open a new file for the new nmap scan results
 f = open(mac_list, "w+")
@@ -86,14 +94,24 @@ for i in mac_addresses:
     dic = eval(i)
     # Compare mac address portion of dictionary to mac addresses in the master_mac_addresses file
     # If the scanned mac address is not in the master_mac_addresses file
-    if dic['mac'] not in master_mac_addresses:
+
+    # === 2/15/2022, simbleau ===
+    mac_addr = dic['mac']
+    # Check if mac address is excluded by regex
+    for pattern in regex_mac_exclusions:
+        if re.match(pattern, mac_addr) is not None:
+            continue  # Match found, skip to next MAC
+    # Check if known MAC in master list
+    if mac_addr not in master_mac_addresses:
         # Add scanned mac address to new devices list
         new_devices.append(dic)
+    # ===========================
 
 # If the new_devices list isn't empty
 if len(new_devices) != 0:
     # output a warning to the console
-    warning = "\nWARNING!! NEW DEVICE(S) ON THE LAN!! - UNKNOWN MAC ADDRESS(ES): " + str(new_devices) + "\n"
+    warning = "\nWARNING!! NEW DEVICE(S) ON THE LAN!! - UNKNOWN MAC ADDRESS(ES): " + str(
+        new_devices) + "\n"
     print(warning)
 
     # Create email notification of the warning
@@ -113,4 +131,3 @@ if len(new_devices) != 0:
         print("Error sending email: {0}".format(e))
     except subprocess.SubprocessError as se:
         print("Error sending email: {0}".format(se))
-
