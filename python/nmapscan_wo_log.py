@@ -28,7 +28,7 @@ from datetime import datetime
 # === 2/15/2022, simbleau ===
 regex_mac_exclusions = []
 # regex_mac_exclusions.append("00:00:5e:00:53:af")  -- A single MAC address
-# regex_mac_exclusions.append("^00:.*")             -- All MACs starting with '00:'
+regex_mac_exclusions.append("^00:.*")        ##     -- All MACs starting with '00:'
 # ===========================
 
 # variable containing the filepath of the nmap scan results file
