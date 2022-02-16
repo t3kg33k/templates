@@ -4,7 +4,7 @@ services:
     netbootxyz:
       image: lscr.io/linuxserver/netbootxyz
       container_name: netbootxyz
-      :wenvironment:
+      environment:
         - PUID=1000
         - PGID=1000
         - MENU_VERSION=1.9.9 #optional
