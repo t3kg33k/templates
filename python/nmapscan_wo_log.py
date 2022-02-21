@@ -53,7 +53,7 @@ print("Don't forget to update your network in the nmap scan of this script")
 nm = nmap.PortScanner()
 # Perform: nmap -oX - -n -sn 192.168.1.69/24
 # *** NOTE: -sP has changed to -sn for newer versions of nmap! ***
-nm.scan(hosts='192.168.15.0/24', arguments='-n -sn')
+nm.scan(hosts='192.168.0.0/24', arguments='-n -sn')
 # Retrieve results for all hosts found
 nm.all_hosts()
 # For every host result, write their mac address and ip to the $mac_list file
