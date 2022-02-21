@@ -125,7 +125,7 @@ if len(new_devices) != 0:
         # content of email
         content = "New unknown device(s) on the LAN: " + str(new_devices)
         # shell process of sending email with mutt
-        m1 = subprocess.Popen('echo "{content}" | mail -s "{subject}" ecrosby1971@gmail.com'.format(
+        m1 = subprocess.Popen('echo "{content}" | mail -s "{subject}" username@email.com'.format(
             content=content, subject=subject), shell=True)
         # output whether email was successful in sending or not
         print(m1.communicate())
