@@ -17,6 +17,6 @@ services:
       PIHOLE_DNS_: 208.67.222.222;8.8.8.8 # OpenDNS and Google DNS
     # Volumes store your data between container upgrades
     volumes:
-            - '/mnt/docker/etc-pihole:/etc/pihole/:z'
-            - '/mnt/docker/etc-dnsmasq.d:/etc/dnsmasq.d/:z'
+            - '/mnt/docker/etc-pihole:/etc/pihole/:z' # 'z' tag for SELinux
+            - '/mnt/docker/etc-dnsmasq.d:/etc/dnsmasq.d/:z' # 'z' tag for SELinux
     restart: unless-stopped
