@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+
+  ghost:
+    image: ghost:latest
+    restart: always
+    ports:
+      - 8080:2368
+    depends_on:
+      - db
+    volumes:
+      - /path/to/docker/ghost/content:/var/lib/ghost/content
+    environment:
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: "ghostuser"
+      database__connection__password: "enterpasswordhere"
+      database__connection__database: "ghostdb"
+      # this url value is just an example, and is likely wrong for your environment!
+      url: https://www.mydomain.com
+
+  db:
+    image: mysql:latest
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - /path/to/docker/ghost/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=enterrootpasswordhere
+      - MYSQL_DATABASE=ghostdb
+      - MYSQL_USER=ghostuser
+      - MYSQL_PASSWORD=enterpasswordhere
