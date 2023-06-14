@@ -1,0 +1,13 @@
+	nmcli connection down eno1
+	nmcli connection delete eno1
+	nmcli connection add type bridge con-name br0 ifname br0 ipv6.method ignore ipv4.method manual ipv4.addresses 192.168.x.30/24 ipv4.gateway 192.168.1x.1 ipv4.dns 8.8.8.8 bridge.stp no
+	nmcli connection add type ethernet con-name br-eno1 ifname eno1 master br0
+	nmcli connection up br0
+Steps for configuring static network via nmcli:
+	nmcli conn show --active
+	nmcli device status
+	nmcli device show "interface"
+	nmcli conn modify 'connection name' ipv4.addresses "ipaddress" ipv4.gateway "ipaddress" ipv4.dns "ipaddress","ipaddress" ipv4.method manual
+	nmcli conn down 'connection name'
+	nmcli conn up 'connection name'
+	nmcli device show "interface"
