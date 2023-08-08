@@ -78,22 +78,6 @@
           - kdenlive
           - thunderbird
 
-##### Set VIM as the default editor
-    - name: Configure vim as default
-      become: yes
-      dnf:
-        name: vim-default-editor
-        state: present
-        allowerasing: yes
-
-##### Stop and disabled the firewall
-    - name: Stop and disable firewalld
-      become: yes
-      service:
-        name: firewalld
-        state: stopped
-        enabled: no
-
 ##### Add flathub repo
     - name: Add flathub repo
       become: no
@@ -153,6 +137,22 @@
         state: present
         method: user
 
+##### Set VIM as the default editor
+    - name: Configure vim as default
+      become: yes
+      dnf:
+        name: vim-default-editor
+        state: present
+        allowerasing: yes
+
+##### Stop and disabled the firewall
+    - name: Stop and disable firewalld
+      become: yes
+      service:
+        name: firewalld
+        state: stopped
+        enabled: no
+
 ##### Replace .bashrc with custom .bashrc
     - name: Copy bashrc template
       ansible.builtin.copy:
@@ -193,32 +193,7 @@
         path: /etc/fstab
         line: ipaddress:/volume1/backups /mnt/nas_backup nfs rsize=8192,wsize=8192,timeo=14,intr
 
-#### The following sets up systemd-resolved using PiHole IP address
-    - name: Create resolved.conf.d directory if it does not exist
-      become: yes
-      ansible.builtin.file:
-        path: /etc/systemd/resolved.conf.d
-        state: directory
-        mode: '0755'
-
-    - name: Copy resolved template
-      become: yes
-      ansible.builtin.copy:
-         src: /directory/to/configs/Fed/resolved.conf
-         dest: /etc/systemd/resolved.conf.d/
-         owner: root
-         group: root
-         mode: '0644'
-         backup: yes
-
-    - name: Restart systemd-resolved
-      become: yes
-      service:
-        name: systemd-resolved
-        state: restarted
-        enabled: yes
-
-#### Add line to sudoers
+##### Add line to sudoers
     - name: Add last line to sudoers
       become: yes
       ansible.builtin.lineinfile:
