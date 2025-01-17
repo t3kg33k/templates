@@ -1,0 +1,17 @@
+--- # For Ubuntu server updates
+- hosts: vm
+  become: true
+  become_user: root
+  become_method: su
+  
+  tasks:
+
+  - name: Update all packages
+    ansible.builtin.apt:
+      name: "*"
+      state: latest
+  
+  - name: Reboot server
+    ansible.builtin.reboot:
+      pre_reboot_delay: 65
+      reboot_timeout: 120
